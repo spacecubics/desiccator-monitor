@@ -1,0 +1,43 @@
+version: '3'
+services:
+  influxdb:
+    image: influxdb:1.6
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      INFLUXDB_DB: tempDB
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "sc123"
+    depends_on:
+      - influxdb
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  switchbotmeter:
+    build: .
+    privileged: true
+    container_name: switchbotmeter
+    volumes:
+      - ./switchbotmeterbt.py:/usr/src/app/switchbotmeterbt.py
+    environment:
+      INFLUXDB_HOST: influxdb
+      macaddr: "EC:4B:05:BD:B8:6D"
+    depends_on:
+      - influxdb
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+      - "/dev/serial/by-id/usb-0bda_2838-if00-port0:/dev/serial/by-id/usb-0bda_2838-if00-port0"
+    network_mode: "host"
+    command: ["python3", "/usr/src/app/switchbotmeterbt.py"]
+volumes:
+  influxdb-data:
+  grafana-data:
