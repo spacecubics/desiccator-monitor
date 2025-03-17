@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy to Server
 
 on:
   push:
@@ -7,17 +7,18 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Set up SSH key
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SWITCHBOT }}
-        
-    - name: Deploy to server
-      run: |
-        ssh -o StrictHostKeyChecking=no yuma@10.30.0.111 "cd desiccator-monitor && git pull && docker compose up -d"
+      - name: Pull latest changes
+        run: |
+          cd ~/desiccator-monitor
+          git pull origin main
+
+      - name: Restart Docker containers
+        run: |
+          cd ~/desiccator-monitor
+          docker compose up -d --build
