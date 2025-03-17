@@ -20,4 +20,4 @@ jobs:
         
     - name: Deploy to server
       run: |
-        ssh -o StrictHostKeyChecking=no yuma@meg.local "cd desiccator-monitor && git pull && docker-compose up -d"
+        ssh -o StrictHostKeyChecking=no yuma@meg.local "cd desiccator-monitor && git pull && docker compose up -d"
