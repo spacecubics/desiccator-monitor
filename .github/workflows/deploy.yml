@@ -1,23 +1,45 @@
-name: Deploy
-
+name: SSH and Docker Deployment
+# 手動実行用のトリガー
 on:
   push:
     branches:
       - main
-
+  workflow_dispatch:
+  
 jobs:
-  deploy:
+  ssh_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout the repository
       uses: actions/checkout@v2
 
     - name: Set up SSH key
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SWITCHBOT }}
-        
-    - name: Deploy to server
       run: |
-        ssh -o StrictHostKeyChecking=no yuma@10.30.0.111 "cd desiccator-monitor && git pull && docker compose up -d"
+        mkdir -p ~/.ssh && chmod 700 ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+      env:
+        SSH_KEY: ${{ secrets.SWITCHBOT }}  # GitHub Secretsに保存されたSSH秘密鍵
+
+    - name: Add SSH host to known hosts
+      run: |
+        ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+      env:
+        HOST: ${{ secrets.HOST }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
+
+    - name: Pull latest changes and deploy with Docker
+      run: |
+        ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_rsa $HOST "
+          cd desiccator-monitor && git pull && docker compose up -d
+        "
+      env:
+        HOST: ${{ secrets.HOST }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
+
+    - name: Check the status of Docker containers
+      run: |
+        ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_rsa $HOST "
+          docker ps
+        "
+      env:
+        HOST: ${{ secrets.HOST }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
+
