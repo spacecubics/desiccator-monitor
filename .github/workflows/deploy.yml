@@ -19,27 +19,27 @@ jobs:
         mkdir -p ~/.ssh && chmod 700 ~/.ssh
         echo "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
       env:
-        SSH_KEY: ${{ secrets.SWITCHBOT }}  # GitHub Secretsに保存されたSSH秘密鍵
+        SSH_KEY: ${{ secrets.switchbot }}  # GitHub Secretsに保存されたSSH秘密鍵
 
     - name: Debug SSH key and host
       run: |
         echo "SSH_KEY: $SSH_KEY"
         echo "HOST: $HOST"
       env:
-        HOST: ${{ secrets.HOST }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
+        HOST: ${{ secrets.host }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
 
     - name: Add SSH host to known hosts
       run: |
         ssh-keyscan $HOST >> ~/.ssh/known_hosts
         cat ~/.ssh/authorized_keys  # known_hostsに追加されたホストの公開鍵を確認する
       env:
-        HOST: ${{ secrets.HOST }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
+        HOST: ${{ secrets.host }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
 
     - name: Test SSH connection
       run: |
         ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_ed25519 $HOST "hostname"
       env:
-        HOST: ${{ secrets.HOST }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
+        HOST: ${{ secrets.host }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
 
     - name: Pull latest changes and deploy with Docker
       run: |
