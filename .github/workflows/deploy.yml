@@ -17,7 +17,7 @@ jobs:
     - name: Set up SSH key
       run: |
         mkdir -p ~/.ssh && chmod 700 ~/.ssh
-        echo "$SSH_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+        echo "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
       env:
         SSH_KEY: ${{ secrets.SWITCHBOT }}  # GitHub Secretsに保存されたSSH秘密鍵
 
@@ -31,19 +31,19 @@ jobs:
     - name: Add SSH host to known hosts
       run: |
         ssh-keyscan $HOST >> ~/.ssh/known_hosts
-        cat ~/.ssh/known_hosts  # known_hostsに追加されたホストの公開鍵を確認する
+        cat ~/.ssh/authorized_keys  # known_hostsに追加されたホストの公開鍵を確認する
       env:
         HOST: ${{ secrets.HOST }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
 
     - name: Test SSH connection
       run: |
-        ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_rsa $HOST "hostname"
+        ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_ed25519 $HOST "hostname"
       env:
         HOST: ${{ secrets.HOST }}  # GitHub Secretsに保存されたサーバーのホスト名またはIP
 
     - name: Pull latest changes and deploy with Docker
       run: |
-        ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_rsa $HOST "
+        ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_ed25519 $HOST "
           cd desiccator-monitor && git pull && docker compose up -d
         "
       env:
@@ -51,7 +51,7 @@ jobs:
 
     - name: Check the status of Docker containers
       run: |
-        ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_rsa $HOST "
+        ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_ed25519 $HOST "
           docker ps
         "
       env:
