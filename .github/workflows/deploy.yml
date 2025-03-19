@@ -13,6 +13,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Test SSH connectivity
+        run: |
+          nc -zv 10.30.0.111 22
+    
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
