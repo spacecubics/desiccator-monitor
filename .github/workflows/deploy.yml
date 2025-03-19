@@ -21,4 +21,4 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh -T -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no yuma@10.30.0.111 "cd desiccator-monitor && git pull origin main && docker compose up -d"
+          ssh -v -T -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no yuma@10.30.0.111 "echo 'Connected successfully' && cd desiccator-monitor && git pull origin main && docker compose up -d"
