@@ -16,9 +16,9 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          printf "%s" "${{ vars.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-
+          ssh-keyscan -H 10.30.0.111 >> ~/.ssh/known_hosts
       - name: Deploy via SSH
         run: |
-          ssh -v -T -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no yuma@10.30.0.111 "echo 'Connected successfully' && cd desiccator-monitor && git pull origin main && docker compose up -d"
+          ssh -vvv -T -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no yuma@10.30.0.111 "echo 'Connected successfully' && cd desiccator-monitor && git pull origin main && docker compose up -d"
