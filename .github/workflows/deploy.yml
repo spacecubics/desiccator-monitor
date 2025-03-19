@@ -1,4 +1,4 @@
-name: Deploy to Server
+name: Build and Push Docker image to GHCR
 
 on:
   push:
@@ -6,19 +6,27 @@ on:
       - main
 
 jobs:
-  deploy:
-    runs-on: self-hosted
+  build:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v2
 
-      - name: Pull latest changes
-        run: |
-          cd ~/desiccator-monitor
-          git pull origin main
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Restart Docker containers
-        run: |
-          cd ~/desiccator-monitor
-          docker compose up -d --build
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }} 
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile  # Dockerfileのパス
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest 
