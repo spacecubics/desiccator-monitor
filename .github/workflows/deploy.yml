@@ -21,7 +21,7 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }}
+          ssh -T -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.SSH_USER }}@${{ vars.SSH_HOST }} << 'EOF'
             cd desiccator-monitor
             git pull origin main
             docker compose up -d
