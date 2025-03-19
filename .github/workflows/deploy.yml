@@ -1,43 +1,29 @@
-name: SSH and Docker Deployment
+name: Deploy to Server
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
-  
+
 jobs:
-  ssh_and_deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout the repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Set up SSH key
-      run: |
-        mkdir -p ~/.ssh && chmod 700 ~/.ssh
-        echo "-----BEGIN OPENSSH PRIVATE KEY-----
-        b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-        QyNTUxOQAAACAXr82M/50dEMgcDxZzLreoR/myIXBMR/ifNZIjL83f0gAAAJhSVaK3UlWi
-        twAAAAtzc2gtZWQyNTUxOQAAACAXr82M/50dEMgcDxZzLreoR/myIXBMR/ifNZIjL83f0g
-        AAAECqE638J8oZILOkVQ8tg+MqX+F6YEy4jSpoUO5qNesUhxevzYz/nR0QyBwPFnMut6hH
-        +bIhcExH+J81kiMvzd/SAAAAEnNrdHltMTUzQGdtYWlsLmNvbQECAw==
-        -----END OPENSSH PRIVATE KEY-----" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Add SSH host to known hosts
-      run: |
-        ssh-keyscan -H 10.30.0.111 >> ~/.ssh/known_hosts  # 直接IPアドレスを指定
-
-    - name: Pull latest changes and deploy with Docker
-      run: |
-        ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_rsa yuma@10.30.0.111 "
-          cd desiccator-monitor && git pull && docker compose up -d
-        "
-
-    - name: Check the status of Docker containers
-      run: |
-        ssh -o "StrictHostKeyChecking=no" -i ~/.ssh/id_rsa yuma@10.30.0.111 "
-          docker ps
-        "
+      - name: Deploy via SSH
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            cd desiccator-monitor
+            git pull origin main
+            docker compose up -d
+          EOF
